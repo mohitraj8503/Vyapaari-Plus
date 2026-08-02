@@ -1,307 +1,254 @@
-# Vyapaari+ — Enterprise Multi-Tenant AI-Powered MSME Platform
+<p align="center">
+  <img src="assets/banner.jpg" alt="Vyapaari+ Banner" width="100%" />
+</p>
+
+# Vyapaari+ — Windows Desktop Business Operating System
 
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg?logo=python&logoColor=white)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.111+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![SQLAlchemy 2.0](https://img.shields.io/badge/SQLAlchemy-2.0-red.svg?logo=sqlite&logoColor=white)](https://www.sqlalchemy.org)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791.svg?logo=postgresql&logoColor=white)](https://www.postgresql.org)
-[![Redis](https://img.shields.io/badge/Redis-7-DC382D.svg?logo=redis&logoColor=white)](https://redis.io)
-[![Celery](https://img.shields.io/badge/Celery-5.4-37814A.svg?logo=celery&logoColor=white)](https://docs.celeryq.dev)
-[![Ruff](https://img.shields.io/badge/Linter-Ruff-CCFF00.svg)](https://github.com/astral-sh/ruff)
+[![PySide6 / Qt6](https://img.shields.io/badge/UI-PySide6%20%2F%20Qt6-41CD52.svg?logo=qt&logoColor=white)](https://wiki.qt.io/Qt_for_Python)
+[![SQLAlchemy 2.0](https://img.shields.io/badge/ORM-SQLAlchemy%202.0-red.svg?logo=sqlite&logoColor=white)](https://www.sqlalchemy.org)
+[![SQLite](https://img.shields.io/badge/Database-SQLite%20Embedded-003B57.svg?logo=sqlite&logoColor=white)](https://sqlite.org)
+[![Prophet AI](https://img.shields.io/badge/AI-Prophet%20%2F%20Scikit--Learn-FF6F00.svg?logo=scikitlearn&logoColor=white)](https://facebook.github.io/prophet/)
+[![PyInstaller](https://img.shields.io/badge/Build-PyInstaller-3776AB.svg?logo=python&logoColor=white)](https://pyinstaller.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **Vyapaari+** is a production-grade, modular-monolith backend engine built for high-throughput Indian MSME billing, multi-branch inventory management, automated financial reporting, and predictive AI analytics.
+> **Vyapaari+** by **Tech Tomorrow** is an AI-first, 100% Python Windows Desktop Operating System for Indian MSMEs. It replaces notebooks, calculators, Excel, WhatsApp reminders, and fragmented billing software with one offline-capable desktop application.
 
 ---
 
-## 🌟 Executive Overview
+## 🎯 The Problem — Why Vyapaari+ Exists
 
-Vyapaari+ is engineered as a **Modular Monolith** applying **Clean Architecture** principles. Rather than collapsing 10+ core domains into a flat API layout, every business unit (Billing, Inventory, AI, Auth, Finance) is organized as a self-contained, domain-driven module with strict separation between HTTP routing, domain business logic, and database persistence layers.
+Walk into any local Indian shop — a kirana store, medical shop, or hardware dealer — and the owner is juggling five disconnected tools:
+- **Notebook (Khata):** Tracking who owes what (Udhaar)
+- **Calculator:** Calculating daily totals manually
+- **Excel:** Record-keeping for tech-savvy owners
+- **WhatsApp:** Sending bills, reminders, and communicating with suppliers
+- **Pirated Billing Tool:** Simply printing physical invoices
 
-### Key Highlights
-- 🏢 **Strict Multi-Tenant Isolation:** `business_id` scoping enforced across all database queries and API routes.
-- ⚡ **Strict 3-Layer Clean Pattern:** `Router` (HTTP) → `Service` (Business Rules) → `Repository` (DB Queries).
-- 🤖 **Standalone AI Engine:** Independent analytics pipeline (`ai/`) covering Prophet demand forecasting, OCR invoice extraction, and LLM business advisories.
-- 🛡️ **Production-Ready Security:** OAuth2 JWT authentication, bcrypt password hashing, RBAC permission guards, and rate-limiting.
-- 🔄 **Async Processing Queue:** Background job processing powered by Redis and Celery.
+None of these systems communicate. Stock runs out without notice, profits quietly erode as purchase costs rise while selling prices remain static, and lost customers go unnoticed for months.
+
+> **The Real Problem:** It isn't a lack of software — existing tools focus purely on **record keeping**, not **decision-making**. Nothing tells the shop owner what to do next.
 
 ---
 
-## 📁 Repository Structure
+## 🚀 The Vision
+
+Vyapaari+ is a **desktop-first, AI-first Business Operating System**. Running locally on the shop's PC, it operates without requiring an internet connection for daily billing.
+
+Instead of just recording transactions, Vyapaari+ answers the critical questions shop owners ask:
+- *What should I reorder today?*
+- *Which products are cutting into my profit margin?*
+- *Which customers haven't returned in 30 days?*
+- *What actions should I take to grow my business this month?*
+
+---
+
+## 🛠️ Complete Tech Stack (100% Python Desktop)
+
+| Component | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Desktop UI** | **PySide6 (Qt for Python)** | Main GUI window, POS screen, dashboards, and input forms. |
+| **Styling** | **QSS (Qt Style Sheets)** | Modern, clean UI styling without HTML/CSS browser runtimes. |
+| **Data Visualization** | **Matplotlib / PyQtGraph** | Native embedded charts for sales trends and profit graphs. |
+| **Core Runtime** | **Python 3.12** | In-process service layer (no web server required). |
+| **Database & ORM** | **SQLAlchemy 2.0 + SQLite** | Local embedded SQLite storage with Alembic migration support. |
+| **AI & ML Engine** | **Pandas, NumPy, Scikit-Learn, Prophet** | In-process forecasting and demand prediction algorithms. |
+| **AI Advisor** | **OpenAI API / Local Ollama** | Conversational business advisor with offline fallback. |
+| **Document Processing** | **Tesseract OCR (`pytesseract`)** | Automatic bill and invoice scan parsing. |
+| **Reports & PDF** | **ReportLab / openpyxl** | GST-compliant PDF invoice generation and Excel exports. |
+| **Packaging & Distribution** | **PyInstaller + Inno Setup** | Single `.exe` bundle and standard Windows installer wizard. |
+
+---
+
+## 📦 System Architecture & Folder Structure
+
+ Vyapaari+ follows a **Modular Monolith Architecture** with strict 3-layer separation (`Screen` → `Service` → `Repository`) inside a single desktop application process.
 
 ```text
 vyapaari-plus/
+├── app/
+│   ├── main.py              # Application entrypoint (launches QApplication)
+│   ├── config.py            # Settings (paths, constants, SQLite connection)
+│   │
+│   ├── core/                # Cross-cutting concerns (no business logic)
+│   │   ├── security.py      # Password hashing, token utility
+│   │   ├── exceptions.py    # Custom domain exceptions
+│   │   ├── logging.py       # Structured application logging
+│   │   └── permissions.py   # RBAC permission checks
+│   │
+│   ├── db/                  # Database Persistence Engine
+│   │   ├── base.py          # SQLAlchemy 2.0 Declarative Base
+│   │   ├── session.py       # SQLite Session Factory & DB init
+│   │   └── mixins.py        # TimestampMixin, SoftDeleteMixin, UUIDMixin
+│   │
+│   ├── modules/             # ⭐ DOMAIN BUSINESS MODULES
+│   │   ├── auth/            # Login, password reset, RBAC roles
+│   │   ├── business/        # Shop profile, GST, branch settings
+│   │   ├── products/        # Catalog, barcodes, MRP, GST categories
+│   │   ├── inventory/       # Stock tracking, transfers, expiry alerts
+│   │   ├── billing/         # POS checkout, PDF invoices, discounts
+│   │   ├── customers/       # Ledger, Udhaar credit, loyalty points
+│   │   ├── suppliers/       # Purchase orders, vendor payables
+│   │   ├── employees/       # Attendance, payroll, staff permissions
+│   │   ├── finance/         # Expense tracking, cashbook, P&L analytics
+│   │   └── reports/         # Export handlers (PDF/Excel)
+│   │                        # (Each module contains: models.py, service.py, repository.py)
+│   │
+│   ├── ai/                  # 🧠 EMBEDDED AI PIPELINE ENGINE
+│   │   ├── forecasting/     # Prophet sales & stock prediction
+│   │   ├── recommendations/ # Dynamic pricing recommendation engine
+│   │   ├── insights/        # Dead stock detection, profit anomaly analysis
+│   │   ├── advisor/         # Conversational business advisor (LLM/Ollama)
+│   │   └── ocr/             # Invoice OCR parser (Tesseract)
+│   │
+│   ├── ui/                  # 🎨 PYSIDE6 / QT GRAPHICAL INTERFACE
+│   │   ├── main_window.py   # Shell window & navigation drawer
+│   │   ├── screens/         # Login, POS Billing, Products, Customers, Reports
+│   │   ├── widgets/         # Reusable tables, metric cards, embedded charts
+│   │   └── styles/          # QSS stylesheets & themes
+│   │
+│   └── resources/           # Assets (App icons, logo, fonts)
 │
-├── backend/
-│   ├── app/
-│   │   ├── main.py                  # FastAPI app initialization & global middlewares
-│   │   ├── config.py                # Type-safe configuration via pydantic-settings
-│   │   ├── dependencies.py          # Global FastAPI dependencies (get_db, get_current_user)
-│   │   │
-│   │   ├── core/                    # Cross-cutting concerns (no business logic)
-│   │   │   ├── security.py          # JWT sign/verify, password hashing, OTP generator
-│   │   │   ├── exceptions.py        # Centralized custom HTTP exception definitions
-│   │   │   ├── middleware.py        # Request ID tracking, CORS, security headers, rate-limiting
-│   │   │   ├── logging.py           # Structured JSON logging setup
-│   │   │   ├── permissions.py       # Role-based Access Control (RBAC) guards
-│   │   │   └── celery_app.py        # Celery worker instance & configuration
-│   │   │
-│   │   ├── db/
-│   │   │   ├── base.py              # SQLAlchemy 2.0 Base declarative class & engine factory
-│   │   │   ├── session.py           # Async/Sync database session handlers
-│   │   │   └── mixins.py            # TimestampMixin, SoftDeleteMixin, UUIDMixin
-│   │   │
-│   │   ├── modules/                 # ⭐ SELF-CONTAINED BUSINESS MODULES
-│   │   │   ├── auth/                # Login, signup, password reset, token refresh
-│   │   │   ├── business/            # Shop, branch, and company profile settings
-│   │   │   ├── products/            # Catalog, categories, brands, variants
-│   │   │   ├── inventory/           # Stock levels, transfers, audit logs, low-stock alerts
-│   │   │   ├── billing/             # Invoices, GST calculations, POS checkout, discounts
-│   │   │   ├── customers/           # Ledger, credit limits, loyalty points
-│   │   │   ├── suppliers/           # Purchase orders, vendor management, payables
-│   │   │   ├── employees/           # Staff roles, attendance, access permissions
-│   │   │   ├── finance/             # Expense tracking, cashbook, P&L aggregation
-│   │   │   ├── reports/             # PDF/Excel export generation, analytics summaries
-│   │   │   ├── notifications/       # SMS, WhatsApp, and Email triggers
-│   │   │   └── ai/                  # REST entrypoints for AI advisories & forecasts
-│   │   │
-│   │   ├── shared/                  # Utilities shared across business modules
-│   │   │   ├── schemas.py           # Standardized API response envelopes & pagination models
-│   │   │   ├── utils.py             # Date formatting, string helpers, currency convertors
-│   │   │   └── constants.py         # Global enums, status codes, system defaults
-│   │   │
-│   │   └── tasks/                   # Celery background job registries
-│   │       ├── report_tasks.py      # Scheduled & async PDF/Excel report workers
-│   │       ├── notification_tasks.py# Async WhatsApp/Email dispatchers
-│   │       └── ai_tasks.py          # Nightly forecasting & model execution jobs
-│   │
-│   ├── ai/                          # 🧠 AI/ML PIPELINE ENGINE (Decoupled from core app)
-│   │   ├── forecasting/             # Prophet-based sales & inventory demand prediction
-│   │   ├── recommendations/         # Dynamic pricing & stock replenishment engine
-│   │   ├── insights/                # Dead stock detection, profit margin anomaly detection
-│   │   ├── advisor/                 # LLM-based conversational business advisor
-│   │   ├── ocr/                     # Bill & vendor invoice OCR parsing pipeline
-│   │   ├── pipelines/               # Offline training & inference execution pipelines
-│   │   └── models/                  # Saved ML models (.pkl, .joblib — GitIgnored)
-│   │
-│   ├── alembic/                     # DB migration scripts
-│   │   ├── versions/
-│   │   └── env.py
-│   │
-│   ├── tests/                       # Automated test suite
-│   │   ├── unit/                    # Mirrors modules/ directory structure
-│   │   ├── integration/             # End-to-end API integration tests
-│   │   ├── conftest.py              # Pytest fixtures (isolated test DB, async test client)
-│   │   └── factories/               # factory_boy model factories for mock data
-│   │
-│   ├── scripts/                     # Admin scripts (database seed, backfills, benchmark)
-│   ├── .env.example                 # Template for environment variables (No secrets!)
-│   ├── pyproject.toml               # Poetry/Tooling configuration (Ruff, Black, Mypy, Pytest)
-│   ├── alembic.ini                  # Migration engine config
-│   ├── Dockerfile                   # Multi-stage production container manifest
-│   └── docker-compose.yml           # Orchestration manifest (App, Postgres, Redis, Celery)
-│
-├── frontend/                        # Next.js Web Portal (Monorepo placeholder)
-├── mobile/                          # Flutter Mobile Application (Monorepo placeholder)
-├── docs/                            # Developer & Architecture documentation
-├── deployment/                      # Nginx configs, Docker assets, CI/CD scripts
+├── assets/                  # Project media & banners
+│   └── banner.jpg           # Official Vyapaari+ Banner Image
+├── alembic/                 # Database schema migrations
+├── tests/                   # Automated unit & integration tests
+│   ├── unit/
+│   ├── integration/
+│   └── conftest.py
+├── build/                   # Build Manifests
+│   ├── vyapaari.spec        # PyInstaller build spec file
+│   └── installer.iss        # Inno Setup Windows installer script
+├── pyproject.toml           # Tooling & dependency configuration
+├── .env.example             # Template for configuration keys
 └── README.md
 ```
 
 ---
 
-## 🏛️ Internal Module Blueprint
+## 🏛️ Clean Architecture Contract (3-Layer Pattern)
 
-Every business domain within `backend/app/modules/` adheres to a strict 3-layer architectural contract:
+Every Qt Screen operates as the presenter layer, routing requests directly to in-process service instances:
 
 ```text
-modules/products/
-├── __init__.py
-├── router.py          # HTTP Layer: FastAPI APIRouter, request validation via schemas.py
-├── schemas.py          # Data Contract: Pydantic V2 request & response models
-├── models.py            # DB Schema: SQLAlchemy 2.0 ORM Models
-├── service.py            # Business Layer: Business logic & validation (framework-agnostic)
-├── repository.py          # Persistence Layer: Raw SQL / SQLAlchemy queries ONLY
-├── exceptions.py            # Domain Errors: Module-specific exception definitions
-├── permissions.py             # Access Control: RBAC rules for module operations
-└── dependencies.py              # Injectables: Module-specific FastAPI Depends()
+Qt Screen (ui/screens/pos_billing.py)
+   │ (Validates GUI inputs with Pydantic)
+   ▼
+Service Layer (modules/billing/service.py)
+   │ (Executes business rules: stock checks, GST calculation)
+   ▼
+Repository Layer (modules/billing/repository.py)
+   │ (Executes SQLAlchemy SQLite transactions)
+   ▼
+Local Database (vyapaari.db)
 ```
 
-### Clean Data Flow Cycle
+> **Key Rule:** Screens contain zero business logic. All business rules reside in `service.py`, making 100% of business logic unit-testable without rendering a single window.
+
+---
+
+## 📋 Comprehensive Module Breakdown
+
+| Module | Core Functional Scope |
+| :--- | :--- |
+| **Authentication** | User login, role-based access control (Admin, Cashier, Manager), session management. |
+| **Business Setup** | Shop profile, address, GSTIN, invoice branding, multi-branch configuration. |
+| **Product Catalog** | Items, categories, barcode generation, HSN/SAC codes, MRP vs. Selling Price. |
+| **Inventory** | Stock in/out logs, warehouse management, low-stock warnings, batch expiry tracking. |
+| **Billing (POS)** | Touch-friendly POS interface, barcode scanner input, cash/online payments, instant PDF bills. |
+| **Customers** | Customer ledger, **Udhaar (Credit) tracking**, automated WhatsApp payment reminders. |
+| **Suppliers** | Vendor profiles, purchase orders, payable balances, stock entry. |
+| **Employees** | Staff attendance, salary calculation, role-specific action permissions. |
+| **Finance** | Expense recording, daily cashbook, net profit/loss calculation. |
+| **Reports** | Daily/monthly sales summaries, GST tax reports, Excel/PDF exporter. |
+
+### 🧠 Embedded AI Capabilities
+
+- **AI Sales Prediction:** Prophet-based forecasting for future sales demand.
+- **AI Inventory Reordering:** Calculates product depletion dates and suggests reorder quantities.
+- **AI Dead Stock Detection:** Identifies slow-moving inventory tying up capital.
+- **AI Pricing Recommendations:** Recommends optimal retail prices based on cost margins.
+- **AI Profit Analysis:** Pinpoints products or categories causing profit margin drops.
+- **AI Business Advisor:** Conversational Assistant ("Why is my net profit down this week?") backed by store data.
+
+---
+
+## 🗓️ 14-Day Full Software Development Plan
+
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor Client
-    participant Router as router.py
-    participant Service as service.py
-    participant Repo as repository.py
-    participant DB as PostgreSQL
-
-    Client->>Router: POST /api/v1/products (HTTP Request + JSON)
-    Note over Router: Validates payload with schemas.py & checks JWT/Permissions
-    Router->>Service: create_product(business_id, data)
-    Note over Service: Applies Business Rules (e.g. MRP >= Cost Price, Unique Barcode)
-    Service->>Repo: add_product(business_id, product_data)
-    Repo->>DB: INSERT INTO products VALUES (...)
-    DB-->>Repo: Product ORM Instance
-    Repo-->>Service: Product ORM Instance
-    Service-->>Router: Processed Domain Product
-    Router-->>Client: 201 Created (Envelope: { success: true, data: ProductOut })
+gantt
+    title Vyapaari+ 14-Day Execution Roadmap
+    dateFormat  YYYY-MM-DD
+    section Phase 1: Core Shell
+    Day 1-2 Repo Setup, PySide6 Shell, SQLite & Auth   :active, p1, 2026-08-01, 2d
+    section Phase 2: Catalog & Stock
+    Day 3-5 Products, Inventory, Supplier Modules      :p2, after p1, 3d
+    section Phase 3: Checkout & Udhaar
+    Day 6-8 POS Billing, Customer Udhaar, Finance       :p3, after p2, 3d
+    section Phase 4: Reports & Dash
+    Day 9-10 Reports (PDF/Excel), Dashboard, Alerts     :p4, after p3, 2d
+    section Phase 5: AI Engine
+    Day 11-12 Prophet Forecast, Pricing AI, Advisor     :p5, after p4, 2d
+    section Phase 6: Packaging
+    Day 13-14 Full QA, PyInstaller .exe, Inno Installer :p6, after p5, 2d
 ```
+
+### Day-by-Day Execution Schedule
+
+- **Day 1:** Repository setup, PySide6 main window shell, QSS design system, SQLite base schema.
+- **Day 2:** Authentication screen (Login/RBAC) & Business Setup wizard.
+- **Day 3:** Product Management module (Screen + Service + Repository).
+- **Day 4:** Inventory Management (Stock in/out, batch tracking, expiry alerts).
+- **Day 5:** Supplier Management (Purchase orders, vendor accounts).
+- **Day 6:** Billing / POS Screen (Barcode scanner, invoice generation, discounts).
+- **Day 7:** Customer Management (**Udhaar Khata**, credit limit, payment history).
+- **Day 8:** Financial Tracking (Daily expenses, cashbook, tax accounting).
+- **Day 9:** Reports Module (Sales, GST reports, PDF/Excel export via ReportLab/openpyxl).
+- **Day 10:** Dashboard Screen & System Notifications (Low stock, payment reminders).
+- **Day 11:** AI Engine: Sales & Inventory demand forecasting (Prophet + PyQtGraph).
+- **Day 12:** AI Engine: Pricing advisor, dead stock identification, LLM Business Advisor.
+- **Day 13:** End-to-end integration testing, data validation, performance tuning.
+- **Day 14:** PyInstaller `.exe` packaging, Inno Setup installer wizard, Beta release.
 
 ---
 
-## 🔒 Architectural Principles & Guidelines
+## 🛠️ Contribution & PR Workflow
 
-### 1. Multi-Tenant Data Isolation (Mandatory)
-Every business table must inherit from `BusinessScopedMixin` (or explicitly contain a `business_id` foreign key referencing the `businesses` table).
-- **Rule:** Repositories must filter queries by `business_id` without exception.
-- **Goal:** Prevent accidental cross-tenant data leaks.
+We welcome contributions to Vyapaari+! Please follow our feature branch workflow:
 
-### 2. Strict Layer Separation
-- **`router.py`**: Handles request parsing, status codes, and HTTP exceptions. **No SQL queries allowed.**
-- **`service.py`**: Executes business rules, orchestrates tasks, and triggers notifications. **No direct `db.query()` calls allowed.**
-- **`repository.py`**: Manages all database queries. **No HTTP or business logic handling allowed.**
-
-### 3. Database Model Standard Mixins
-All models must inherit baseline mixins from `app.db.mixins`:
-```python
-from app.db.base import Base
-from app.db.mixins import UUIDMixin, TimestampMixin, SoftDeleteMixin
-
-class Product(Base, UUIDMixin, TimestampMixin, SoftDeleteMixin):
-    __tablename__ = "products"
-    
-    name = Column(String(255), nullable=False)
-    business_id = Column(UUID, ForeignKey("businesses.id"), nullable=False, index=True)
-```
-
-### 4. Uniform API Response Envelope
-All API endpoints return a standardized JSON structure defined in `app/shared/schemas.py`:
-```json
-{
-  "success": true,
-  "message": "Product created successfully",
-  "data": {
-    "id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
-    "name": "Basmati Rice 5kg",
-    "price": 450.00
-  },
-  "errors": null
-}
-```
-
----
-
-## ⚡ Quickstart & Local Setup
-
-### Prerequisites
-- **Python 3.12+**
-- **Docker & Docker Compose**
-- **PostgreSQL 16+** & **Redis 7+** (or use local Docker services)
-
-### 1. Clone Repository & Environment Setup
+### 1. Fork & Clone
 ```bash
-git clone https://github.com/mohitraj8503/vyapaari-plus.git
-cd vyapaari-plus/backend
+git clone https://github.com/<your-username>/vyapaari-plus.git
+cd vyapaari-plus
+```
 
-# Create virtual environment
-python3.12 -m venv venv
-source venv/bin/activate
+### 2. Create Feature Branch
+```bash
+git checkout -b feature/<module-name>-<your-name>
+```
 
-# Install dependencies
+### 3. Implement & Test Locally
+```bash
+# Install development dependencies
 pip install -r requirements.txt
-```
 
-### 2. Configure Environment Variables
-Copy `.env.example` to `.env` and update secrets:
-```bash
-cp .env.example .env
-```
-
-> ⚠️ **SECURITY WARNING:** Never commit real secrets, DB credentials, or API keys to git. Keep `.env` gitignored at all times.
-
-### 3. Launch Core Infrastructure via Docker
-```bash
-docker-compose up -d postgres redis
-```
-
-### 4. Execute Migrations & Seed Database
-```bash
-# Run Alembic migrations
-alembic upgrade head
-
-# Seed initial system roles & test data
-python scripts/seed_db.py
-```
-
-### 5. Start Application Server & Workers
-```bash
-# Start FastAPI Dev Server
-uvicorn app.main:app --reload --port 8000
-
-# Start Celery Worker (In a separate terminal)
-celery -A app.core.celery_app worker --loglevel=info
-```
-
-FastAPI Interactive API Documentation:
-- **Swagger UI:** `http://localhost:8000/docs`
-- **ReDoc:** `http://localhost:8000/redoc`
-
----
-
-## 🧪 Testing & Code Quality Baseline
-
-Vyapaari+ enforces automated linting, strict static typing, and high test coverage.
-
-### Run Linter & Type Checks
-```bash
-# Code linting & formatting checks via Ruff
+# Run linting and type checks
 ruff check .
-ruff format --check .
-
-# Static type checking via Mypy
 mypy app
-```
 
-### Execute Test Suite
-```bash
-# Run all unit and integration tests
+# Run unit test suite
 pytest
-
-# Generate coverage report
-pytest --cov=app --cov-report=term-missing
 ```
 
----
-
-## ⚙️ Tooling Baseline (`pyproject.toml`)
-
-```toml
-[tool.ruff]
-line-length = 100
-target-version = "py312"
-select = ["E", "F", "I", "UP", "B"]
-
-[tool.black]
-line-length = 100
-
-[tool.mypy]
-python_version = "3.12"
-strict = true
-ignore_missing_imports = true
-plugins = ["pydantic.mypy"]
-
-[tool.pytest.ini_options]
-minversion = "8.0"
-testpaths = ["tests"]
-addopts = "-ra -q --strict-markers"
+### 4. Commit & Push
+```bash
+git add .
+git commit -m "feat: implement <module-name> end-to-end"
+git push origin feature/<module-name>-<your-name>
 ```
 
----
-
-## 📜 License
-
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+### 5. Submit Pull Request
+Open a Pull Request to `mohitraj8503/vyapaari-plus:main`. Ensure your PR contains a **complete, fully-tested module** including screens, service logic, repository queries, and unit tests.
 
 ---
 
