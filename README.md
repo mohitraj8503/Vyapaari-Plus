@@ -255,3 +255,7 @@ Open a Pull Request to `mohitraj8503/vyapaari-plus:main`. Ensure your PR contain
 <p align="center">
   Developed with ❤️ for Indian MSMEs by <strong>Tech Tomorrow</strong>
 </p>
+
+---
+
+Built by [Mohit Raj](https://github.com/mohitraj8503) — Technical Team Lead @ [Tech Tomorrow](https://techtomorrow.in)
