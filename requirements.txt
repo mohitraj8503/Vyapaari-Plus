@@ -22,3 +22,6 @@ pytest-mock>=3.14.0
 
 # GST engine
 jsonschema>=4.23.0
+pyjwt>=2.8.0
+cryptography>=42.0.0
+qrcode[pil]>=7.4.2
