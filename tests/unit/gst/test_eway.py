@@ -471,3 +471,12 @@ def test_schema_file_is_valid_json_schema_and_labelled_derived():
     Draft7Validator.check_schema(schema)
     assert schema["description"].startswith("DERIVED")
     assert "not official" in schema["title"]
+
+
+def test_optional_transport_fields_accept_an_explicit_none():
+    transport = make_transport(
+        transporter_id=None, transporter_name=None, transport_doc_no=None
+    )
+    assert transport.transporter_id is None
+    assert transport.transporter_name is None
+    assert transport.transport_doc_no is None
