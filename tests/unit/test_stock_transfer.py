@@ -1,3 +1,4 @@
+import math
 from datetime import datetime, timezone
 
 import pytest
@@ -137,6 +138,31 @@ def test_create_transfer_rejects_non_positive_quantity(db_session):
                 {
                     "product_id": "p1",
                     "quantity_dispatched": 0,
+                }
+            ],
+        )
+
+    assert db_session.query(StockTransfer).count() == 0
+@pytest.mark.parametrize(
+    "invalid_cost",
+    [math.nan, math.inf, -math.inf],
+)
+def test_create_transfer_rejects_non_finite_unit_cost(
+    db_session, invalid_cost
+):
+    """Reject non-finite costs to protect inventory valuation."""
+    create_branches(db_session)
+    service = StockTransferService(db_session)
+
+    with pytest.raises(ValidationError):
+        service.create_transfer_request(
+            "b1",
+            "b2",
+            [
+                {
+                    "product_id": "p1",
+                    "quantity_dispatched": 1,
+                    "unit_cost": invalid_cost,
                 }
             ],
         )

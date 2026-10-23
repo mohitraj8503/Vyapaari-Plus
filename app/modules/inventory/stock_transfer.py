@@ -1,3 +1,4 @@
+import math
 import uuid
 from datetime import datetime, timezone
 
@@ -115,6 +116,7 @@ class StockTransferService:
             if (
                 isinstance(unit_cost, bool)
                 or not isinstance(unit_cost, (int, float))
+                or not math.isfinite(unit_cost)
                 or unit_cost < 0
             ):
                 raise ValidationError(
