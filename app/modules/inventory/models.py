@@ -185,6 +185,12 @@ class StockTransfer(Base, TimestampMixin):
         unique=True,
         index=True,
         nullable=False,
+    )   # Client-supplied key: a retried request returns the original transfer.
+    idempotency_key: Mapped[str | None] = mapped_column(
+        String(100),
+        unique=True,
+        index=True,
+        nullable=True,
     )
 
     gate_pass_number: Mapped[str | None] = mapped_column(
@@ -643,3 +649,4 @@ class CarrierLog(Base, TimestampMixin):
         "StockTransfer",
         back_populates="carrier_logs",
     )
+     

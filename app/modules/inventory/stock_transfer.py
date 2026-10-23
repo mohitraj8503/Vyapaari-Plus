@@ -1,6 +1,8 @@
 import uuid
 from datetime import datetime, timezone
 
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import EntityNotFoundError, ValidationError
@@ -22,6 +24,23 @@ class StockTransferService:
     @staticmethod
     def _utc_now() -> datetime:
         return datetime.now(timezone.utc)
+
+    def _find_by_idempotency_key(self, key: str):
+        return self.db.execute(
+            select(StockTransfer).where(StockTransfer.idempotency_key == key)
+        ).scalar_one_or_none()
+
+    @staticmethod
+    def _request_fingerprint(source_id, destination_id, items) -> tuple:
+        lines = sorted(
+            (
+                str(i["product_id"]),
+                str(i["batch_number"]),
+                int(i["quantity_dispatched"]),
+            )
+            for i in items
+        )
+        return (source_id, destination_id, lines)
 
     def _get_transfer(self, transfer_id: str) -> StockTransfer:
         """Fetch a transfer with a row lock where supported by the database."""
@@ -71,6 +90,7 @@ class StockTransferService:
         items: list[dict],
         dispatched_by: str = None,
         notes: str = None,
+        idempotency_key: str = None,
     ) -> StockTransfer:
         """Create a validated draft transfer and its audit event."""
 
@@ -133,6 +153,44 @@ class StockTransferService:
                 }
             )
 
+        if idempotency_key is not None:
+            if (
+                not isinstance(idempotency_key, str)
+                or not idempotency_key.strip()
+            ):
+                raise ValidationError(
+                    "Idempotency key must be a non-empty string."
+                )
+            idempotency_key = idempotency_key.strip()
+            if len(idempotency_key) > 100:
+                raise ValidationError(
+                    "Idempotency key must be at most 100 characters."
+                )
+
+            existing = self._find_by_idempotency_key(idempotency_key)
+            if existing is not None:
+                incoming = self._request_fingerprint(
+                    source_branch_id, destination_branch_id, validated_items
+                )
+                stored = self._request_fingerprint(
+                    existing.source_branch_id,
+                    existing.destination_branch_id,
+                    [
+                        {
+                            "product_id": i.product_id,
+                            "batch_number": i.batch_number,
+                            "quantity_dispatched": i.quantity_dispatched,
+                        }
+                        for i in existing.items
+                    ],
+                )
+                if incoming != stored:
+                    raise ValidationError(
+                        "Idempotency key was already used for a "
+                        "different transfer request."
+                    )
+                return existing
+
         transfer = StockTransfer(
             id=str(uuid.uuid4()),
             transfer_number=self._document_number("TRF"),
@@ -141,6 +199,7 @@ class StockTransferService:
             status=TransferStatus.DRAFT,
             dispatched_by=dispatched_by,
             notes=notes,
+            idempotency_key=idempotency_key,
         )
 
         try:
@@ -174,6 +233,14 @@ class StockTransferService:
             self.db.commit()
             self.db.refresh(transfer)
             return transfer
+
+        except IntegrityError:
+            self.db.rollback()
+            if idempotency_key:
+                existing = self._find_by_idempotency_key(idempotency_key)
+                if existing is not None:
+                    return existing
+            raise
 
         except Exception:
             self.db.rollback()
