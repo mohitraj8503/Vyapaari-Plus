@@ -97,10 +97,10 @@ def test_multi_line_totals_and_round_up():
     breakup = calculate_invoice(invoice)
     assert len(breakup.lines) == 2
     assert breakup.taxable_total == Decimal("43.43")
-    assert breakup.cgst_total == Decimal("2.25")
+    assert breakup.cgst_total == Decimal("2.26")
     assert breakup.sgst_total == Decimal("2.25")
     assert breakup.igst_total == Decimal("0.00")
-    assert breakup.round_off == Decimal("0.07")
+    assert breakup.round_off == Decimal("0.06")
     assert breakup.invoice_total == Decimal("48.00")
 
 

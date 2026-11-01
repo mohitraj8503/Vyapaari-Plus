@@ -212,6 +212,59 @@ gantt
 
 ---
 
+## ✅ Verified Current Implementation
+
+The current branch verifies the GST calculation and validation engine, supplier purchase
+order/GRN workflows, product catalog services, multi-branch inventory transfer workflow,
+business setup, POS billing, customer Udhaar, report exports, authentication/RBAC, and
+operational alerts. Billing and ledger services use Decimal money values and atomic
+transactions.
+
+### Prerequisites and setup
+
+Python 3.12 or newer is required on Windows.
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+Copy-Item .env.example .env
+python -m alembic upgrade head
+```
+
+The default database is the local `vyapaari.db` SQLite file. Set `DATABASE_URL` in
+`.env` to use another SQLite URL. Do not put production secrets in `.env.example`.
+
+### Run the application and API
+
+```powershell
+python -m app.main
+uvicorn app.api:app --host 127.0.0.1 --port 8000
+```
+
+The desktop command initializes the database and exits cleanly in headless environments.
+The API exposes `/health`, authentication, business setup, billing, alerts, reports,
+customer payment, and inventory transfer routes.
+
+### Tests and coverage
+
+```powershell
+python -m pytest -q
+python -m pytest -q tests\unit\gst
+python -m pytest -q tests\unit\test_stock_transfer.py
+python -m pytest -q tests\unit\test_phase_f_core.py tests\unit\test_phase_f_services.py tests\unit\test_phase_f_coverage.py
+python -m pytest -q --cov=app --cov-report=term-missing
+```
+
+The latest verification run passes 531 tests with 89% total application coverage.
+The focused Phase F service modules are covered at 97% combined, with each substantive
+new module above 90%.
+
+### Known limitations and roadmap
+
+The desktop screens remain intentionally lightweight and route to the implemented service
+layer; production deployment still requires configuring secrets and a business profile.
+
 ## 🛠️ Contribution & PR Workflow
 
 We welcome contributions to Vyapaari+! Please follow our feature branch workflow:

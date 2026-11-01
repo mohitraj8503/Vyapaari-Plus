@@ -1,1 +1,3 @@
-"""Repository for reports module."""
+class ReportRepository:
+    def __init__(self, db):
+        self.db = db

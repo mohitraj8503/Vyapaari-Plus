@@ -23,13 +23,40 @@ from pydantic import ValidationError as PydanticValidationError
 from app.core.exceptions import ValidationError
 from app.modules.gst.money import to_decimal
 from app.modules.gst.place_of_supply import Regime
-from app.modules.gst.states import normalize_state_code
+from app.modules.gst.states import STATE_CODES, normalize_state_code
 
 GSTIN_RE = re.compile(r"[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]")
 DOC_NO_RE = re.compile(r"[A-Za-z1-9][A-Za-z0-9/-]{0,15}")
 PINCODE_RE = re.compile(r"[1-9][0-9]{5}")
 HSN_RE = re.compile(r"[0-9]{4}|[0-9]{6}|[0-9]{8}")
 SERVICE_PREFIX = "99"
+GST_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+
+def compute_gstin_checksum(gstin14: str) -> str:
+    """Compute 15th character of GSTIN using ISO/IEC 7064 Mod 36, 36 algorithm."""
+    gstin14 = gstin14.strip().upper()[:14]
+    total = 0
+    for i, c in enumerate(gstin14):
+        val = GST_CHARS.index(c)
+        weight = 1 if (i % 2 == 0) else 2
+        prod = val * weight
+        quotient = prod // 36
+        remainder = prod % 36
+        total += quotient + remainder
+    check = (36 - (total % 36)) % 36
+    return GST_CHARS[check]
+
+
+def verify_gstin_checksum(gstin: str) -> bool:
+    """Verify whether a 15-character GSTIN has a valid Mod 36 checksum."""
+    if not isinstance(gstin, str) or len(gstin.strip()) != 15:
+        return False
+    gstin = gstin.strip().upper()
+    try:
+        return compute_gstin_checksum(gstin[:14]) == gstin[14]
+    except (ValueError, KeyError, IndexError):
+        return False
 
 
 def _amount(value, info: ValidationInfo) -> Decimal:
@@ -139,6 +166,8 @@ class Party(GstModel):
         value = value.strip().upper()
         if not GSTIN_RE.fullmatch(value):
             raise ValidationError(f"gstin is not in a valid format: {value!r}")
+        if value[:2] not in STATE_CODES:
+            raise ValidationError(f"gstin has an invalid state code prefix: {value[:2]!r}")
         return value
 
     @field_validator("pincode")

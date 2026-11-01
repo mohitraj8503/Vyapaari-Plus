@@ -134,8 +134,8 @@ def test_valuation_adds_up_with_odd_paise_and_round_off():
     payload = build(invoice)
     val = payload["ValDtls"]
     assert val["AssVal"] == 43.43
-    assert val["CgstVal"] == 2.25
-    assert val["RndOffAmt"] == 0.07
+    assert val["CgstVal"] == 2.26
+    assert val["RndOffAmt"] == 0.06
     assert val["TotInvVal"] == 48.0
     gross = val["AssVal"] + val["CgstVal"] + val["SgstVal"] + val["IgstVal"] + val["CesVal"]
     assert gross + val["RndOffAmt"] == pytest.approx(val["TotInvVal"], abs=1e-9)

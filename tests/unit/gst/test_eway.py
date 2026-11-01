@@ -351,6 +351,11 @@ def test_transport_normalizes_vehicle_and_transporter_id():
     assert transport.transporter_id == TRANSPORTER_GSTIN
 
 
+def test_transport_accepts_bh_series_vehicle():
+    transport = make_transport(vehicle_no=" 22 bh 1234 aa ")
+    assert transport.vehicle_no == "22BH1234AA"
+
+
 def test_transport_accepts_a_distance_of_zero_and_the_maximum():
     assert make_transport(distance_km=0).distance_km == 0
     assert (

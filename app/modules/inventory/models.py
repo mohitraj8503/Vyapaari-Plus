@@ -1,17 +1,19 @@
 import enum
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from decimal import Decimal
 
 from sqlalchemy import (
     CheckConstraint,
-    UniqueConstraint,
-    Index,
-    String,
-    Integer,
-    Float,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,7 +23,7 @@ from app.db.mixins import TimestampMixin
 
 def utc_now() -> datetime:
     """Return the current timezone-aware UTC timestamp."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class TransferStatus(str, enum.Enum):
@@ -31,6 +33,7 @@ class TransferStatus(str, enum.Enum):
     RECEIVED = "RECEIVED"
     RECONCILED = "RECONCILED"
     DISPUTED = "DISPUTED"
+    CANCELLED = "CANCELLED"
 
 
 class Branch(Base, TimestampMixin):
@@ -121,15 +124,15 @@ class StockBatch(Base, TimestampMixin):
         nullable=False,
     )
 
-    purchase_price: Mapped[float] = mapped_column(
-        Float,
-        default=0.0,
+    purchase_price: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2),
+        default=Decimal("0.00"),
         nullable=False,
     )
 
-    selling_price: Mapped[float] = mapped_column(
-        Float,
-        default=0.0,
+    selling_price: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2),
+        default=Decimal("0.00"),
         nullable=False,
     )
 
@@ -243,6 +246,13 @@ class StockTransfer(Base, TimestampMixin):
     delivery_challan_number: Mapped[str | None] = mapped_column(
         String(50),
         unique=True,
+        nullable=True,
+    )
+
+    idempotency_key: Mapped[str | None] = mapped_column(
+        String(100),
+        unique=True,
+        index=True,
         nullable=True,
     )
 
@@ -365,9 +375,9 @@ class TransferItem(Base, TimestampMixin):
         nullable=False,
     )
 
-    unit_cost: Mapped[float] = mapped_column(
-        Float,
-        default=0.0,
+    unit_cost: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2),
+        default=Decimal("0.00"),
         nullable=False,
     )
 

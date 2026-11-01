@@ -18,13 +18,28 @@ import io
 import re
 from datetime import date, datetime
 
-import jwt
-import qrcode
-from cryptography.exceptions import UnsupportedAlgorithm
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from qrcode.constants import ERROR_CORRECT_M
-from qrcode.exceptions import DataOverflowError
+try:
+    import jwt
+except ImportError:
+    jwt = None
+
+try:
+    import qrcode
+    from qrcode.constants import ERROR_CORRECT_M
+    from qrcode.exceptions import DataOverflowError
+except ImportError:
+    qrcode = None
+    ERROR_CORRECT_M = None
+    DataOverflowError = Exception
+
+try:
+    from cryptography.exceptions import UnsupportedAlgorithm
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+except ImportError:
+    UnsupportedAlgorithm = Exception
+    serialization = None
+    rsa = None
 
 from app.core.exceptions import ValidationError
 from app.modules.gst.exceptions import SigningError
@@ -100,6 +115,8 @@ def verify(token: str, public_key_pem: bytes) -> dict:
 
 def render_qr_png(text: str) -> bytes:
     """Draw text as a PNG QR code."""
+    if qrcode is None:
+        raise SigningError("QR code generation requires 'qrcode' library")
     if not isinstance(text, str) or not text:
         raise ValidationError("QR text must be a non-empty string")
     qr = qrcode.QRCode(error_correction=ERROR_CORRECT_M, box_size=4, border=2)

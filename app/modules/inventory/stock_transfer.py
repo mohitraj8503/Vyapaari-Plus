@@ -1,9 +1,11 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import EntityNotFoundError, ValidationError
+from app.core.money import to_decimal
 from app.modules.inventory.models import (
     CarrierLog,
     StockBatch,
@@ -21,7 +23,7 @@ class StockTransferService:
 
     @staticmethod
     def _utc_now() -> datetime:
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     def _get_transfer(self, transfer_id: str) -> StockTransfer:
         """Fetch a transfer with a row lock where supported by the database."""
@@ -39,7 +41,7 @@ class StockTransferService:
 
     @staticmethod
     def _document_number(prefix: str) -> str:
-        date_part = datetime.now(timezone.utc).strftime("%Y%m%d")
+        date_part = datetime.now(UTC).strftime("%Y%m%d")
         unique_part = uuid.uuid4().hex[:10].upper()
         return f"{prefix}-{date_part}-{unique_part}"
 
@@ -71,8 +73,18 @@ class StockTransferService:
         items: list[dict],
         dispatched_by: str = None,
         notes: str = None,
+        idempotency_key: str = None,
     ) -> StockTransfer:
         """Create a validated draft transfer and its audit event."""
+
+        if idempotency_key:
+            existing = (
+                self.db.query(StockTransfer)
+                .filter(StockTransfer.idempotency_key == idempotency_key)
+                .first()
+            )
+            if existing:
+                return existing
 
         if not source_branch_id or not destination_branch_id:
             raise ValidationError(
@@ -111,14 +123,20 @@ class StockTransferService:
                     "Dispatched quantity must be a positive integer."
                 )
 
-            unit_cost = item_data.get("unit_cost", 0.0)
-            if (
-                isinstance(unit_cost, bool)
-                or not isinstance(unit_cost, (int, float))
-                or unit_cost < 0
-            ):
+            raw_cost = item_data.get("unit_cost", 0.0)
+            if isinstance(raw_cost, bool):
+                raise ValidationError("Unit cost must be a non-negative number.")
+            try:
+                cost_dec = to_decimal(
+                    Decimal(str(raw_cost)) if isinstance(raw_cost, float) else raw_cost,
+                    "Unit cost",
+                )
+            except Exception as exc:
+                raise ValidationError("Unit cost must be a finite non-negative number.") from exc
+
+            if not cost_dec.is_finite() or cost_dec < Decimal("0.00"):
                 raise ValidationError(
-                    "Unit cost must be a non-negative number."
+                    "Unit cost must be a finite non-negative number."
                 )
 
             validated_items.append(
@@ -129,7 +147,7 @@ class StockTransferService:
                     ),
                     "batch_number": item_data.get("batch_number"),
                     "quantity_dispatched": quantity,
-                    "unit_cost": float(unit_cost),
+                    "unit_cost": cost_dec,
                 }
             )
 
@@ -141,6 +159,7 @@ class StockTransferService:
             status=TransferStatus.DRAFT,
             dispatched_by=dispatched_by,
             notes=notes,
+            idempotency_key=idempotency_key,
         )
 
         try:
@@ -663,6 +682,67 @@ class StockTransferService:
             self.db.refresh(transfer)
             return transfer
 
+        except Exception:
+            self.db.rollback()
+            raise
+
+    def cancel_transfer(
+        self,
+        transfer_id: str,
+        cancelled_by: str = None,
+        reason: str = None,
+    ) -> StockTransfer:
+        """Cancel a transfer and replenish source stock if already dispatched."""
+        transfer = self._get_transfer(transfer_id)
+
+        if transfer.status in (
+            TransferStatus.RECEIVED,
+            TransferStatus.RECONCILED,
+        ):
+            raise ValidationError(
+                f"Cannot cancel a transfer with status: {transfer.status.value}."
+            )
+
+        if transfer.status == TransferStatus.CANCELLED:
+            return transfer
+
+        try:
+            if transfer.status in (TransferStatus.DISPATCHED, TransferStatus.IN_TRANSIT):
+                for item in transfer.items:
+                    if item.quantity_dispatched <= 0:
+                        continue
+                    query = self.db.query(StockBatch).filter(
+                        StockBatch.branch_id == transfer.source_branch_id,
+                        StockBatch.product_id == item.product_id,
+                    )
+                    if item.batch_number:
+                        query = query.filter(StockBatch.batch_number == item.batch_number)
+                    batch = query.with_for_update().first()
+                    if batch is not None:
+                        batch.quantity += item.quantity_dispatched
+                    else:
+                        restored = StockBatch(
+                            id=str(uuid.uuid4()),
+                            product_id=item.product_id,
+                            branch_id=transfer.source_branch_id,
+                            batch_number=item.batch_number or f"BATCH-{transfer.transfer_number[:8]}",
+                            quantity=item.quantity_dispatched,
+                            purchase_price=Decimal(str(item.unit_cost)),
+                            selling_price=Decimal("0.00"),
+                        )
+                        self.db.add(restored)
+
+            transfer.status = TransferStatus.CANCELLED
+            self._add_carrier_log(
+                transfer,
+                event_type="CANCELLED",
+                details=f"Transfer cancelled. Reason: {reason or 'Not specified'}",
+                logged_by=cancelled_by,
+            )
+
+            self.db.commit()
+            self.db.refresh(transfer)
+            return transfer
         except Exception:
             self.db.rollback()
             raise

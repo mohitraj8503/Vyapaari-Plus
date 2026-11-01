@@ -54,4 +54,5 @@ build/
 # Testing & Coverage
 .pytest_cache/
 .coverage
+*.coverage
 htmlcov/

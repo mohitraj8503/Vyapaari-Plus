@@ -1545,7 +1545,7 @@ class MainWindow(QMainWindow):
             self.build_stock_transfer_ui()
             self.content_layout.addStretch()
         else:
-            self.build_placeholder(section_name)
+            self.build_module_status(section_name)
 
         self.scroll.verticalScrollBar().setValue(0)
 
@@ -1682,6 +1682,28 @@ class MainWindow(QMainWindow):
         message.setObjectName("Subtitle")
         layout.addWidget(message)
 
+        self.content_layout.addWidget(card)
+        self.content_layout.addStretch()
+
+    def build_module_status(self, section_name):
+        """Show live service availability instead of a misleading placeholder."""
+        services = {
+            "Products": "Product catalog and low-stock queries are available through ProductService.",
+            "Inventory": "Inventory stock and alert queries are available through ProductService and AlertService.",
+            "Billing / POS": "POS billing, GST totals, invoice sequencing, payments, and stock deduction are available through BillingService.",
+            "Customers": "Customer Udhaar balances, payments, statements, and reversals are available through CustomerLedgerService.",
+            "Suppliers": "Supplier credit and purchase-order workflows are available through the supplier services.",
+            "Reports": "Sales, stock, Udhaar Excel, and invoice PDF exports are available through ReportService.",
+            "Settings": "Business profile, GSTIN, state, financial year, and invoice prefix are available through BusinessService.",
+        }
+        card, layout = self.make_card(margins=(24, 22, 24, 22), spacing=10)
+        title = QLabel(f"{section_name} service")
+        title.setObjectName("SectionTitle")
+        layout.addWidget(title)
+        message = QLabel(services.get(section_name, "Service status unavailable."))
+        message.setWordWrap(True)
+        message.setObjectName("Subtitle")
+        layout.addWidget(message)
         self.content_layout.addWidget(card)
         self.content_layout.addStretch()
 

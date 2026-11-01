@@ -43,7 +43,7 @@ from app.modules.gst.money import percent_of, to_decimal
 from app.modules.gst.place_of_supply import Regime, resolve_regime
 
 SCHEMA_PATH = Path(__file__).parent / "schemas" / "eway_bill_derived.json"
-VEHICLE_RE = re.compile(r"[A-Z]{2}[0-9]{1,2}[A-Z]{0,3}[0-9]{4}")
+VEHICLE_RE = re.compile(r"([A-Z]{2}[0-9]{1,2}[A-Z]{0,3}[0-9]{4})|([0-9]{2}BH[0-9]{4}[A-Z]{1,2})")
 TRANS_DOC_RE = re.compile(r"[A-Za-z0-9/-]{1,15}")
 PART_B_KEYS = ("transMode", "vehicleNo", "vehicleType", "transDocNo", "transDocDate")
 

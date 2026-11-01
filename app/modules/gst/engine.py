@@ -50,7 +50,9 @@ def calculate_line(item: LineItem, regime, fallback_rate=None) -> LineTax:
 
     cgst = sgst = igst = ZERO
     if regime is Regime.INTRA:
-        cgst = sgst = percent_of(taxable, rate / TWO)
+        total_intra_tax = percent_of(taxable, rate)
+        cgst = round_paise(total_intra_tax / TWO)
+        sgst = total_intra_tax - cgst
     else:
         igst = percent_of(taxable, rate)
 

@@ -1,14 +1,24 @@
-from fastapi import FastAPI, Depends, HTTPException
+from tempfile import NamedTemporaryFile
+
+from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.db.session import SessionLocal
-from app.modules.inventory.service import InventoryService
 from app.core.exceptions import (
     EntityNotFoundError,
-    ValidationError,
     InsufficientStockError,
+    ValidationError,
 )
+from app.db.session import SessionLocal
+from app.modules.alerts.service import AlertService
+from app.modules.auth.models import Role
+from app.modules.auth.service import AuthService
+from app.modules.billing.service import BillingService
+from app.modules.business.service import BusinessService
+from app.modules.customers.service import CustomerLedgerService
+from app.modules.inventory.service import InventoryService
+from app.modules.reports.service import ReportService
 
 app = FastAPI(
     title="Vyapaari+ Inventory Transfer API",
@@ -39,6 +49,7 @@ class CreateTransferInput(BaseModel):
     items: list[TransferItemInput] = Field(min_length=1)
     dispatched_by: str | None = None
     notes: str | None = None
+    idempotency_key: str | None = Field(default=None, min_length=1, max_length=100)
 
 
 class DispatchInput(BaseModel):
@@ -55,6 +66,115 @@ class ReceivedItemInput(BaseModel):
 class ReceiveInput(BaseModel):
     items: list[ReceivedItemInput]
     received_by: str | None = None
+
+
+class BusinessInput(BaseModel):
+    name: str = Field(min_length=1)
+    state_code: str = Field(min_length=2, max_length=2)
+    address: str = Field(min_length=1)
+    gstin: str | None = None
+    invoice_prefix: str = Field(default="INV", min_length=1, max_length=8)
+
+
+class BillInput(BaseModel):
+    items: list[dict] = Field(min_length=1)
+    place_of_supply: str | None = None
+    customer_id: str | None = None
+    payments: list[dict] = Field(default_factory=list)
+    idempotency_key: str = Field(min_length=1, max_length=100)
+
+
+class LoginInput(BaseModel):
+    username: str
+    password: str
+
+
+class UserInput(LoginInput):
+    role: Role = Role.CASHIER
+
+
+def require_permission(permission: str):
+    def dependency(
+        token: str | None = Header(default=None, alias="X-Auth-Token"),
+        db: Session = Depends(get_db),
+    ):
+        if not token:
+            raise HTTPException(status_code=401, detail="Authentication required.")
+        try:
+            return AuthService(db).require(token, permission)
+        except ValidationError as exc:
+            raise HTTPException(status_code=403, detail=str(exc)) from exc
+    return dependency
+
+
+@app.post("/auth/users")
+def create_user(payload: UserInput, db: Session = Depends(get_db)):
+    try:
+        user = AuthService(db).create_user(payload.username, payload.password, payload.role)
+        return {"id": user.id, "username": user.username, "role": user.role.value}
+    except ValidationError as exc:
+        service_error(exc)
+
+
+@app.post("/auth/login")
+def login(payload: LoginInput, db: Session = Depends(get_db)):
+    try:
+        return {"token": AuthService(db).login(payload.username, payload.password)}
+    except ValidationError as exc:
+        service_error(exc)
+
+
+@app.post("/business")
+def configure_business(payload: BusinessInput, db: Session = Depends(get_db), _=Depends(require_permission("business"))):
+    try:
+        profile = BusinessService(db).create_or_update(**payload.model_dump())
+        return {
+            "id": profile.id, "name": profile.name, "gstin": profile.gstin,
+            "state_code": profile.state_code, "address": profile.address,
+        }
+    except ValidationError as exc:
+        service_error(exc)
+
+
+@app.post("/billing")
+def create_bill(payload: BillInput, db: Session = Depends(get_db), _=Depends(require_permission("billing"))):
+    try:
+        invoice = BillingService(db).create_bill(**payload.model_dump())
+        return {"id": invoice.id, "invoice_number": invoice.invoice_number, "total": str(invoice.total)}
+    except (ValidationError, InsufficientStockError) as exc:
+        service_error(exc)
+
+
+@app.post("/customers/{customer_id}/payments")
+def record_customer_payment(customer_id: str, amount: float, db: Session = Depends(get_db), _=Depends(require_permission("billing"))):
+    try:
+        entry = CustomerLedgerService(db).record_payment(customer_id, amount)
+        return {"id": entry.id, "balance": str(CustomerLedgerService(db).balance(customer_id))}
+    except ValidationError as exc:
+        service_error(exc)
+
+
+@app.get("/alerts")
+def alerts(db: Session = Depends(get_db), _=Depends(require_permission("reports"))):
+    service = AlertService(db)
+    return {
+        "low_stock": [p.id for p in service.low_stock()],
+        "overdue_udhaar": [e.id for e in service.overdue_udhaar()],
+        "overdue_payables": [i.id for i in service.overdue_payables()],
+        "pending_transfers": [t.id for t in service.pending_transfers()],
+    }
+
+
+@app.get("/reports/sales")
+def sales_report(db: Session = Depends(get_db), _=Depends(require_permission("reports"))):
+    temporary = NamedTemporaryFile(suffix=".xlsx", delete=False)
+    temporary.close()
+    ReportService(db).export_sales_excel(temporary.name)
+    return FileResponse(
+        temporary.name,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename="sales-report.xlsx",
+    )
 
 
 def to_dict(transfer):
@@ -96,7 +216,7 @@ def health():
 
 
 @app.post("/transfers", status_code=201)
-def create_transfer(payload: CreateTransferInput, db: Session = Depends(get_db)):
+def create_transfer(payload: CreateTransferInput, db: Session = Depends(get_db), _=Depends(require_permission("transfers"))):
     service = InventoryService(db)
     try:
         transfer = service.transfers.create_transfer_request(
@@ -105,6 +225,7 @@ def create_transfer(payload: CreateTransferInput, db: Session = Depends(get_db))
             items=[item.model_dump() for item in payload.items],
             dispatched_by=payload.dispatched_by,
             notes=payload.notes,
+            idempotency_key=payload.idempotency_key,
         )
         return to_dict(transfer)
     except (EntityNotFoundError, ValidationError, InsufficientStockError) as exc:
@@ -116,6 +237,7 @@ def dispatch_transfer(
     transfer_id: str,
     payload: DispatchInput,
     db: Session = Depends(get_db),
+    _=Depends(require_permission("transfers")),
 ):
     service = InventoryService(db)
     try:
@@ -134,6 +256,7 @@ def receive_transfer(
     transfer_id: str,
     payload: ReceiveInput,
     db: Session = Depends(get_db),
+    _=Depends(require_permission("transfers")),
 ):
     service = InventoryService(db)
     try:
@@ -154,6 +277,7 @@ def reconcile_transfer(
     resolution_status: str = "RESOLVED",
     remarks: str | None = None,
     db: Session = Depends(get_db),
+    _=Depends(require_permission("transfers")),
 ):
     service = InventoryService(db)
     try:
