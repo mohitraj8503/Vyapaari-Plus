@@ -1,5 +1,6 @@
 from collections import defaultdict
 from decimal import Decimal
+from typing import ClassVar
 from uuid import uuid4
 
 from sqlalchemy.orm import Session
@@ -11,7 +12,7 @@ from app.modules.purchasing.repository import PurchaseOrderRepository
 class PurchaseOrderService:
     """Generate and manage draft purchase orders."""
 
-    VALID_STATUSES = {
+    VALID_STATUSES: ClassVar[set[str]] = {
         "DRAFT",
         "PENDING_APPROVAL",
         "DISPATCHED",

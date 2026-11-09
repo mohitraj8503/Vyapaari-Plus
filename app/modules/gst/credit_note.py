@@ -1,3 +1,4 @@
+
 """Credit note tax: same maths as an invoice, plus checks against the original.
 
 Amounts stay positive; the document type (CRN) says it reduces the original.
@@ -31,11 +32,16 @@ def _check_against_original(
 ) -> None:
     if original.doc_type is not DocType.INV:
         raise ValidationError("the original document must be an invoice (doc_type INV)")
+
     ref = credit_note.original_invoice
+    if ref is None:
+        raise ValidationError("credit note must reference the original invoice")
+
     if (ref.doc_no, ref.doc_date) != (original.doc_no, original.doc_date):
         raise ValidationError(
             "credit note original_invoice does not match the original invoice"
         )
+
     if (
         credit_note.supplier.gstin != original.supplier.gstin
         or credit_note.buyer.gstin != original.buyer.gstin
@@ -44,6 +50,7 @@ def _check_against_original(
         raise ValidationError(
             "credit note parties and place of supply must match the original invoice"
         )
+
     original_breakup = calculate_invoice(original, rate_lookup)
     if breakup.taxable_total > original_breakup.taxable_total:
         raise ValidationError("credit note taxable value exceeds the original invoice")

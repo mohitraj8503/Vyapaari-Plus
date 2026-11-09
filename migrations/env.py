@@ -1,6 +1,5 @@
-from logging.config import fileConfig
-import os
 import sys
+from logging.config import fileConfig
 from pathlib import Path
 
 from alembic import context
@@ -15,7 +14,18 @@ from app.config import settings
 from app.db.base import Base
 
 # Import model modules so their tables are registered in Base.metadata.
+from app.modules.auth import models as auth_models  # noqa: F401
+from app.modules.billing import models as billing_models  # noqa: F401
+from app.modules.business import models as business_models  # noqa: F401
+from app.modules.customers import models as customers_models  # noqa: F401
+from app.modules.employees import models as employees_models  # noqa: F401
+from app.modules.finance import models as finance_models  # noqa: F401
 from app.modules.inventory import models as inventory_models  # noqa: F401
+from app.modules.products import models as products_models  # noqa: F401
+from app.modules.purchasing import grn_models as grn_models  # noqa: F401
+from app.modules.purchasing import models as purchasing_models  # noqa: F401
+from app.modules.reports import models as reports_models  # noqa: F401
+from app.modules.suppliers import models as suppliers_models  # noqa: F401
 
 config = context.config
 

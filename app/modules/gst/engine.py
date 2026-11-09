@@ -17,7 +17,7 @@ from app.modules.gst.money import HUNDRED, percent_of, round_paise, to_decimal
 from app.modules.gst.place_of_supply import Regime
 
 ZERO = Decimal("0.00")
-TWO = Decimal("2")
+TWO = Decimal(2)
 
 
 def taxable_value(item: LineItem) -> Decimal:
@@ -34,7 +34,7 @@ def _resolve_rate(item: LineItem, fallback_rate) -> Decimal:
         raise ValidationError(
             "gst_rate is missing: set it on the item or resolve it from HSN/SAC"
         )
-    if not Decimal("0") <= rate <= HUNDRED:
+    if not Decimal(0) <= rate <= HUNDRED:
         raise ValidationError("gst_rate must be between 0 and 100")
     return rate
 

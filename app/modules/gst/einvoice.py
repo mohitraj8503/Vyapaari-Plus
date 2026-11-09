@@ -1,3 +1,4 @@
+
 """E-invoice JSON builder (NIC INV-01, version 1.1) with schema validation.
 
 build_einvoice_json turns an Invoice and its TaxBreakup into the payload that
@@ -22,7 +23,14 @@ from jsonschema import Draft7Validator
 from app.core.exceptions import ValidationError
 from app.modules.gst.exceptions import SchemaValidationError
 from app.modules.gst.invoice_calc import RateLookup
-from app.modules.gst.models import Invoice, LineItem, LineTax, Party, SupplyType, TaxBreakup
+from app.modules.gst.models import (
+    Invoice,
+    LineItem,
+    LineTax,
+    Party,
+    SupplyType,
+    TaxBreakup,
+)
 from app.modules.gst.money import percent_of, round_paise, to_decimal
 from app.modules.gst.place_of_supply import Regime, resolve_regime
 
@@ -90,8 +98,13 @@ def _effective_rate(item: LineItem, rate_lookup: RateLookup | None) -> Decimal:
     )
 
 
-def _party(party: Party, place_of_supply: str | None = None) -> dict:
-    block = {"Gstin": party.gstin, "LglNm": party.name}
+def _party(
+    party: Party, place_of_supply: str | None = None
+) -> dict[str, str | int | None]:
+    block: dict[str, str | int | None] = {
+        "Gstin": party.gstin,
+        "LglNm": party.name,
+    }
     if place_of_supply is not None:
         block["Pos"] = place_of_supply
     if party.address is not None:
@@ -158,7 +171,7 @@ def build_einvoice_json(
         _item(index, item, line, _effective_rate(item, rate_lookup))
         for index, (item, line) in enumerate(zip(invoice.items, breakup.lines), start=1)
     ]
-    payload = {
+    payload: dict[str, object] = {
         "Version": SCHEMA_VERSION,
         "TranDtls": {
             "TaxSch": "GST",

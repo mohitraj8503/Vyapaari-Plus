@@ -14,7 +14,7 @@ from app.modules.gst.money import (
 
 @pytest.mark.parametrize(
     "value, expected",
-    [(5, Decimal("5")), ("12.50", Decimal("12.50")), (Decimal("3.1"), Decimal("3.1"))],
+    [(5, Decimal(5)), ("12.50", Decimal("12.50")), (Decimal("3.1"), Decimal("3.1"))],
 )
 def test_to_decimal_accepts_int_str_decimal(value, expected):
     assert to_decimal(value) == expected

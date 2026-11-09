@@ -140,7 +140,7 @@ def test_parties_and_place_of_supply_must_match_the_original(overrides):
 
 def test_rate_lookup_is_used_for_the_note_and_the_original():
     def lookup(code):
-        return Decimal("18")
+        return Decimal(18)
 
     credit = make_credit(items=[make_item(quantity="2", gst_rate=None)])
     original = make_invoice(items=[make_item(quantity="5", gst_rate=None)])

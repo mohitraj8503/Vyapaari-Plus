@@ -1,3 +1,4 @@
+
 from decimal import Decimal
 
 import pytest
@@ -71,7 +72,7 @@ def test_duplicate_codes_are_rejected():
 def test_resolve_exact_code(cache):
     record = cache.resolve("1006")
     assert record.description == "Rice"
-    assert record.gst_rate == Decimal("5")
+    assert record.gst_rate == Decimal(5)
 
 
 def test_resolve_strips_whitespace(cache):
@@ -105,9 +106,9 @@ def test_resolve_rejects_invalid_codes(cache, code):
 
 
 def test_rate_for(cache):
-    assert cache.rate_for("1006") == Decimal("5")
-    assert cache.rate_for("10061090") == Decimal("0")
-    assert cache.resolve("2402").cess_rate == Decimal("5")
+    assert cache.rate_for("1006") == Decimal(5)
+    assert cache.rate_for("10061090") == Decimal(0)
+    assert cache.resolve("2402").cess_rate == Decimal(5)
 
 
 # ---------- HsnCache: search ----------
@@ -142,7 +143,9 @@ def test_search_by_description_words(cache):
 
 
 def test_description_search_ignores_case(cache):
-    assert [r.code for r in cache.search("RICE")] == [r.code for r in cache.search("rice")]
+    assert [r.code for r in cache.search("RICE")] == [
+        r.code for r in cache.search("rice")
+    ]
 
 
 def test_description_search_respects_the_limit(cache):
@@ -176,27 +179,53 @@ def test_search_rejects_invalid_limits(cache, limit):
 def test_load_records_skips_comments_and_blank_lines(tmp_path):
     path = write_csv(
         tmp_path,
-        "# a comment\n\n" + HEADER + "1006,Rice,HSN,5,0\n\n# another\n"
-        "9983,Other services,SAC,18,0\n",
+        "# a comment\n\n"
+        + HEADER
+        + "1006,Rice,HSN,5,0\n\n# another\n"
+        + "9983,Other services,SAC,18,0\n",
     )
     records = load_records(path)
     assert [r.code for r in records] == ["1006", "9983"]
-    assert records[0].gst_rate == Decimal("5")
+    assert records[0].gst_rate == Decimal(5)
 
 
 def test_load_records_cess_column_is_optional(tmp_path):
     path = write_csv(tmp_path, "code,description,kind,gst_rate\n1006,Rice,HSN,5\n")
-    assert load_records(path)[0].cess_rate == Decimal("0")
+    assert load_records(path)[0].cess_rate == Decimal(0)
 
 
 def test_load_records_empty_cess_means_zero(tmp_path):
     path = write_csv(tmp_path, HEADER + "1006,Rice,HSN,5,\n")
-    assert load_records(path)[0].cess_rate == Decimal("0")
+    assert load_records(path)[0].cess_rate == Decimal(0)
 
 
 def test_load_records_keeps_a_cess_value(tmp_path):
     path = write_csv(tmp_path, HEADER + "2402,Cigarettes,HSN,28,5\n")
-    assert load_records(path)[0].cess_rate == Decimal("5")
+    assert load_records(path)[0].cess_rate == Decimal(5)
+
+
+def test_load_records_rejects_invalid_kind(tmp_path):
+    path = write_csv(tmp_path, HEADER + "1006,Rice,INVALID,5,0\n")
+    with pytest.raises(ValidationError, match="kind: Input should be"):
+        load_records(path)
+
+
+@pytest.mark.parametrize(
+    "gst_rate, cess_rate, expected_message",
+    [
+        ("not-a-number", "0", "gst_rate is not a valid number"),
+        ("5", "not-a-number", "cess_rate is not a valid number"),
+    ],
+)
+def test_load_records_rejects_invalid_rates(
+    tmp_path, gst_rate, cess_rate, expected_message
+):
+    path = write_csv(
+        tmp_path,
+        HEADER + f"1006,Rice,HSN,{gst_rate},{cess_rate}\n",
+    )
+    with pytest.raises(ValidationError, match=expected_message):
+        load_records(path)
 
 
 def test_load_records_reports_missing_columns(tmp_path):
@@ -240,5 +269,5 @@ def test_default_cache_is_loaded_once_from_the_sample_data():
 def test_default_cache_helpers():
     assert resolve_hsn("1006").code == "1006"
     assert "1006" in [record.code for record in search_hsn("rice")]
-    assert hsn_rate("1006") == Decimal("5")
+    assert hsn_rate("1006") == Decimal(5)
     assert resolve_hsn("99831499").code == "998314"

@@ -89,7 +89,7 @@ class InventoryRepository:
         self,
         branch_id: str,
         direction: str = "any",
-        status: TransferStatus = None,
+        status: TransferStatus | None = None,
     ) -> list[StockTransfer]:
         """Transfers leaving ("source"), entering ("destination") or
         touching ("any") a branch, optionally filtered by status.
@@ -149,7 +149,7 @@ class InventoryRepository:
     def get_transfer_items_by_product(
         self,
         product_id: str,
-        batch_number: str = None,
+        batch_number: str | None = None,
     ) -> list[TransferItem]:
         """Served by ix_transfer_items_product_batch."""
         query = self.db.query(TransferItem).filter(
@@ -176,7 +176,7 @@ class InventoryRepository:
 
     def list_reconciliations(
         self,
-        resolution_status: str = None,
+        resolution_status: str | None = None,
         offset: int = 0,
         limit: int = 50,
     ) -> list[ReconciliationLog]:
@@ -265,8 +265,8 @@ class InventoryRepository:
 
     def get_stock_batches(
         self,
-        branch_id: str = None,
-        product_id: str = None,
+        branch_id: str | None = None,
+        product_id: str | None = None,
     ) -> list[StockBatch]:
         query = self.db.query(StockBatch)
 

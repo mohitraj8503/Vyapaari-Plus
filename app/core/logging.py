@@ -1,6 +1,8 @@
-import sys
 import logging
+import sys
+
 from app.config import settings
+
 
 def setup_logging():
     settings.log_dir.mkdir(parents=True, exist_ok=True)

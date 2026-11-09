@@ -36,7 +36,7 @@ class _Node:
     __slots__ = ("children", "record")
 
     def __init__(self):
-        self.children: dict[str, "_Node"] = {}
+        self.children: dict[str, _Node] = {}
         self.record: HsnRecord | None = None
 
 

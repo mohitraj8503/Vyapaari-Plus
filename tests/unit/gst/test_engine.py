@@ -125,7 +125,7 @@ def test_item_rate_wins_over_fallback_rate():
     assert line.igst == Decimal("5.00")
 
 
-@pytest.mark.parametrize("fallback", ["18", Decimal("18"), 18])
+@pytest.mark.parametrize("fallback", ["18", Decimal(18), 18])
 def test_fallback_rate_is_used_when_item_has_no_rate(fallback):
     line = calculate_line(make_item(gst_rate=None), "INTER", fallback_rate=fallback)
     assert line.igst == Decimal("18.00")

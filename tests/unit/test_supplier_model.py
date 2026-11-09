@@ -5,8 +5,8 @@ from uuid import uuid4
 import pytest
 
 from app.modules.suppliers.models import (
-    Supplier,
     PaymentTerms,
+    Supplier,
     SupplierInvoice,
     SupplierPayment,
 )

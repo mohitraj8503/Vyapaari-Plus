@@ -1,7 +1,8 @@
 import hashlib
 import secrets
 
-def hash_password(password: str, salt: str = None) -> tuple[str, str]:
+
+def hash_password(password: str, salt: str | None = None) -> tuple[str, str]:
     if not salt:
         salt = secrets.token_hex(16)
     hashed = hashlib.sha256((salt + password).encode("utf-8")).hexdigest()

@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -21,7 +21,7 @@ class StockTransferService:
 
     @staticmethod
     def _utc_now() -> datetime:
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     def _get_transfer(self, transfer_id: str) -> StockTransfer:
         """Fetch a transfer with a row lock where supported by the database."""
@@ -39,7 +39,7 @@ class StockTransferService:
 
     @staticmethod
     def _document_number(prefix: str) -> str:
-        date_part = datetime.now(timezone.utc).strftime("%Y%m%d")
+        date_part = datetime.now(UTC).strftime("%Y%m%d")
         unique_part = uuid.uuid4().hex[:10].upper()
         return f"{prefix}-{date_part}-{unique_part}"
 
@@ -47,9 +47,9 @@ class StockTransferService:
         self,
         transfer: StockTransfer,
         event_type: str,
-        location: str = None,
-        details: str = None,
-        logged_by: str = None,
+        location: str | None = None,
+        details: str | None = None,
+        logged_by: str | None = None,
     ) -> CarrierLog:
         """Add an event to the current transaction."""
         log = CarrierLog(
@@ -69,8 +69,8 @@ class StockTransferService:
         source_branch_id: str,
         destination_branch_id: str,
         items: list[dict],
-        dispatched_by: str = None,
-        notes: str = None,
+        dispatched_by: str | None = None,
+        notes: str | None = None,
     ) -> StockTransfer:
         """Create a validated draft transfer and its audit event."""
 
@@ -268,8 +268,8 @@ class StockTransferService:
     def dispatch_transfer(
         self,
         transfer_id: str,
-        vehicle_number: str = None,
-        driver_contact: str = None,
+        vehicle_number: str | None = None,
+        driver_contact: str | None = None,
     ) -> StockTransfer:
         """Dispatch a draft transfer and create delivery documents."""
 
@@ -354,11 +354,11 @@ class StockTransferService:
     def update_carrier_tracking(
         self,
         transfer_id: str,
-        carrier_name: str = None,
-        estimated_delivery_at: datetime = None,
-        vehicle_number: str = None,
-        driver_contact: str = None,
-        updated_by: str = None,
+        carrier_name: str | None = None,
+        estimated_delivery_at: datetime | None = None,
+        vehicle_number: str | None = None,
+        driver_contact: str | None = None,
+        updated_by: str | None = None,
     ) -> StockTransfer:
         """Update carrier, ETA, vehicle and driver information."""
 
@@ -373,9 +373,10 @@ class StockTransferService:
                 "DISPATCHED or IN_TRANSIT transfers."
             )
 
-        if carrier_name is not None:
-            if not isinstance(carrier_name, str) or not carrier_name.strip():
-                raise ValidationError("Carrier name cannot be empty.")
+        if carrier_name is not None and (
+            not isinstance(carrier_name, str) or not carrier_name.strip()
+        ):
+            raise ValidationError("Carrier name cannot be empty.")
 
         if estimated_delivery_at is not None:
             if not isinstance(estimated_delivery_at, datetime):
@@ -426,9 +427,9 @@ class StockTransferService:
         self,
         transfer_id: str,
         event_type: str,
-        location: str = None,
-        details: str = None,
-        logged_by: str = None,
+        location: str | None = None,
+        details: str | None = None,
+        logged_by: str | None = None,
     ) -> CarrierLog:
         """Record a carrier checkpoint or movement event."""
 
@@ -482,7 +483,7 @@ class StockTransferService:
         self,
         transfer_id: str,
         received_items: list[dict],
-        received_by: str = None,
+        received_by: str | None = None,
     ) -> StockTransfer:
         """Record good and damaged quantities after validating delivery."""
 

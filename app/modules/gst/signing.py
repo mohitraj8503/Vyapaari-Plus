@@ -1,3 +1,4 @@
+
 """QR payload, RS256 signing and QR rendering for e-invoices.
 
 The legally valid signed QR comes from the IRP (NIC). This module is the local
@@ -25,6 +26,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from qrcode.constants import ERROR_CORRECT_M
 from qrcode.exceptions import DataOverflowError
+from qrcode.image.pil import PilImage
 
 from app.core.exceptions import ValidationError
 from app.modules.gst.exceptions import SigningError
@@ -102,7 +104,12 @@ def render_qr_png(text: str) -> bytes:
     """Draw text as a PNG QR code."""
     if not isinstance(text, str) or not text:
         raise ValidationError("QR text must be a non-empty string")
-    qr = qrcode.QRCode(error_correction=ERROR_CORRECT_M, box_size=4, border=2)
+    qr = qrcode.QRCode(
+        error_correction=ERROR_CORRECT_M,
+        box_size=4,
+        border=2,
+        image_factory=PilImage,
+    )
     qr.add_data(text)
     try:
         qr.make(fit=True)
@@ -110,7 +117,7 @@ def render_qr_png(text: str) -> bytes:
         raise SigningError("data is too long for a QR code") from None
     image = qr.make_image(fill_color="black", back_color="white")
     buffer = io.BytesIO()
-    image.save(buffer, format="PNG")
+    image.save(buffer)
     return buffer.getvalue()
 
 

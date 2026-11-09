@@ -78,7 +78,7 @@ def check_hsn_sac_code(code, is_service: bool, field: str = "hsn_sac") -> str:
 
 
 def _check_percent(value: Decimal, field: str) -> None:
-    if not Decimal("0") <= value <= Decimal("100"):
+    if not Decimal(0) <= value <= Decimal(100):
         raise ValidationError(f"{field} must be between 0 and 100")
 
 
@@ -162,10 +162,10 @@ class LineItem(GstModel):
     unit_price: Amount
     is_service: bool = False
     uqc: str = "NOS"
-    discount: Amount = Decimal("0")
+    discount: Amount = Decimal(0)
     gst_rate: OptionalAmount = None
-    cess_rate: Amount = Decimal("0")
-    cess_per_unit: Amount = Decimal("0")
+    cess_rate: Amount = Decimal(0)
+    cess_per_unit: Amount = Decimal(0)
 
     @field_validator("description")
     @classmethod
@@ -293,7 +293,7 @@ class HsnRecord(GstModel):
     description: str
     kind: HsnKind
     gst_rate: Amount
-    cess_rate: Amount = Decimal("0")
+    cess_rate: Amount = Decimal(0)
 
     @model_validator(mode="after")
     def check_record(self) -> Self:

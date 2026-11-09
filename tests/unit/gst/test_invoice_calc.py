@@ -167,7 +167,7 @@ def test_rate_lookup_fills_in_missing_item_rates():
 
     def lookup(code):
         seen.append(code)
-        return Decimal("18")
+        return Decimal(18)
 
     breakup = calculate_invoice(
         make_invoice(items=[make_item(gst_rate=None)]), lookup

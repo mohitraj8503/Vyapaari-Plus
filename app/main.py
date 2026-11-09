@@ -1,17 +1,17 @@
-import sys
 
-import app.modules.purchasing.models
-import app.modules.purchasing.grn_models
+import sys
 
 from app.config import settings
 from app.core.logging import setup_logging
 
 
 def main():
-    logger = setup_logging()
-    logger.info(
-        f"Starting {settings.app_name} v{settings.app_version}..."
-    )
+    """Initialize and run the Vyapaari+ application."""
+    setup_logging()
+    import logging
+
+    logger = logging.getLogger(__name__)
+    logger.info("Starting %s v%s", settings.app_name, settings.app_version)
 
     try:
         # Register database models before initializing the schema.
@@ -23,9 +23,10 @@ def main():
         import app.modules.finance.models
         import app.modules.inventory.models
         import app.modules.products.models
+        import app.modules.purchasing.grn_models
+        import app.modules.purchasing.models
         import app.modules.reports.models
         import app.modules.suppliers.models
-
         from app.db.session import init_db
 
         init_db()
@@ -33,19 +34,24 @@ def main():
 
     except ImportError as exc:
         logger.warning(
-            f"Application dependency or model import missing: {exc}"
+            "Application dependency or model import missing: %s",
+            exc,
         )
-        logger.info(
-            "Check installed dependencies and module imports."
-        )
+    except Exception:
+        logger.exception("Database initialization failed.")
+        raise
 
     try:
         from PySide6.QtWidgets import QApplication
+
         from app.ui.main_window import MainWindow
 
         app = QApplication(sys.argv)
+        app.setApplicationName(settings.app_name)
+
         window = MainWindow()
         window.show()
+
         return app.exec()
 
     except ImportError:

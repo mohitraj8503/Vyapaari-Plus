@@ -2,7 +2,6 @@ from decimal import Decimal
 
 import pytest
 
-from app.modules.products.models import Product
 from app.modules.products.service import ProductService
 
 

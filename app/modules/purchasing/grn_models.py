@@ -12,7 +12,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-from app.db.mixins import TimestampMixin
+from app.db.mixins import TimestampMixin, utc_now
 
 
 class GoodsReceipt(Base, TimestampMixin):
@@ -30,7 +30,7 @@ class GoodsReceipt(Base, TimestampMixin):
         ForeignKey("purchase_orders.id"), nullable=False, index=True
     )
     received_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, nullable=False
+        DateTime, default=utc_now, nullable=False
     )
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 

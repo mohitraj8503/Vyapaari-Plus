@@ -1,6 +1,6 @@
 import math
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -12,7 +12,6 @@ from app.modules.inventory.models import (
     StockTransfer,
     TransferStatus,
 )
-
 
 RESOLUTION_PENDING = "PENDING"
 RESOLUTION_RESOLVED = "RESOLVED"
@@ -28,7 +27,7 @@ RECONCILABLE_STATUSES = (
 
 def _utc_now() -> datetime:
     """Return the current timezone-aware UTC timestamp."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class MultiBranchReconciliationEngine:
@@ -61,8 +60,8 @@ class MultiBranchReconciliationEngine:
         self,
         transfer_id: str,
         reconciled_by: str,
-        resolution_status: str = None,
-        remarks: str = None,
+        resolution_status: str | None = None,
+        remarks: str | None = None,
     ) -> ReconciliationLog:
         """Calculate stock variance and create an audit record."""
 
@@ -81,8 +80,8 @@ class MultiBranchReconciliationEngine:
         self,
         transfer_id: str,
         reconciled_by: str,
-        resolution_status: str,
-        remarks: str,
+        resolution_status: str | None,
+        remarks: str | None,
     ) -> ReconciliationLog:
         if not isinstance(transfer_id, str) or not transfer_id.strip():
             raise ValidationError("Transfer ID is required.")
@@ -260,7 +259,7 @@ class MultiBranchReconciliationEngine:
         transfer_id: str,
         approver: str,
         decision: str,
-        remarks: str = None,
+        remarks: str | None = None
     ) -> ReconciliationApproval:
         """Record an approval or rejection for a disputed transfer."""
 
@@ -280,7 +279,7 @@ class MultiBranchReconciliationEngine:
         transfer_id: str,
         approver: str,
         decision: str,
-        remarks: str,
+        remarks: str | None,
     ) -> ReconciliationApproval:
         if not isinstance(transfer_id, str) or not transfer_id.strip():
             raise ValidationError("Transfer ID is required.")

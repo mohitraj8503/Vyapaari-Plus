@@ -104,14 +104,14 @@ class SupplierStatementService:
         try:
             from reportlab.lib import colors
             from reportlab.lib.pagesizes import A4, landscape
+            from reportlab.lib.styles import getSampleStyleSheet
             from reportlab.platypus import (
-                SimpleDocTemplate,
                 Paragraph,
+                SimpleDocTemplate,
                 Spacer,
                 Table,
                 TableStyle,
             )
-            from reportlab.lib.styles import getSampleStyleSheet
         except ImportError as exc:
             raise RuntimeError(
                 "PDF export requires ReportLab. Install it with: "

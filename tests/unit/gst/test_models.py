@@ -151,11 +151,11 @@ def test_party_is_immutable():
 
 def test_line_item_defaults():
     item = make_item()
-    assert item.quantity == Decimal("2")
+    assert item.quantity == Decimal(2)
     assert item.unit_price == Decimal("100.00")
-    assert item.discount == Decimal("0")
-    assert item.cess_rate == Decimal("0")
-    assert item.cess_per_unit == Decimal("0")
+    assert item.discount == Decimal(0)
+    assert item.cess_rate == Decimal(0)
+    assert item.cess_per_unit == Decimal(0)
     assert item.gst_rate is None
     assert item.uqc == "NOS"
     assert item.is_service is False
@@ -166,13 +166,13 @@ def test_line_item_accepts_int_str_and_decimal_numbers():
         quantity=3,
         unit_price="99.50",
         gst_rate="18",
-        cess_rate=Decimal("12"),
+        cess_rate=Decimal(12),
         cess_per_unit=1,
     )
-    assert item.quantity == Decimal("3")
-    assert item.gst_rate == Decimal("18")
-    assert item.cess_rate == Decimal("12")
-    assert item.cess_per_unit == Decimal("1")
+    assert item.quantity == Decimal(3)
+    assert item.gst_rate == Decimal(18)
+    assert item.cess_rate == Decimal(12)
+    assert item.cess_per_unit == Decimal(1)
 
 
 def test_line_item_gst_rate_can_be_explicit_none():
@@ -190,8 +190,8 @@ def test_line_item_service_with_sac_is_valid():
 
 def test_line_item_boundaries_are_valid():
     item = make_item(discount="200", gst_rate="0", cess_rate="100")
-    assert item.discount == Decimal("200")
-    assert make_item(gst_rate="100").gst_rate == Decimal("100")
+    assert item.discount == Decimal(200)
+    assert make_item(gst_rate="100").gst_rate == Decimal(100)
 
 
 @pytest.mark.parametrize(
@@ -337,7 +337,7 @@ def test_invoice_reports_missing_fields_as_validation_error():
 
 def test_line_tax_total():
     assert make_line_tax().tax_total == Decimal("36.00")
-    assert make_line_tax(cgst="9", sgst="9", igst="0", cess="2").tax_total == Decimal("20")
+    assert make_line_tax(cgst="9", sgst="9", igst="0", cess="2").tax_total == Decimal(20)
 
 
 def test_tax_breakup_holds_regime_and_lines():
@@ -359,7 +359,7 @@ def test_hsn_record_for_goods_and_services():
         code="998314", description="Sample IT service", kind="SAC", gst_rate="18"
     )
     assert goods.kind is HsnKind.HSN
-    assert goods.cess_rate == Decimal("0")
+    assert goods.cess_rate == Decimal(0)
     assert service.kind is HsnKind.SAC
 
 

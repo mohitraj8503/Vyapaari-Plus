@@ -4,11 +4,11 @@ from uuid import uuid4
 from sqlalchemy.orm import Session
 
 from app.modules.products.models import Product
-from app.modules.purchasing.models import PurchaseOrder
 from app.modules.purchasing.grn_models import (
     GoodsReceipt,
     GoodsReceiptLine,
 )
+from app.modules.purchasing.models import PurchaseOrder
 
 
 class GoodsReceiptService:
@@ -53,7 +53,7 @@ class GoodsReceiptService:
                 )
 
             if not isinstance(quantity, int) or isinstance(quantity, bool):
-                raise ValueError("Received quantity must be a whole number.")
+                raise TypeError("Received quantity must be a whole number.")
 
             if quantity <= 0:
                 raise ValueError("Received quantity must be greater than zero.")

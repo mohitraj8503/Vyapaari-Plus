@@ -13,7 +13,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-from app.db.mixins import TimestampMixin
+from app.db.mixins import TimestampMixin, utc_now
 
 
 class PurchaseOrder(Base, TimestampMixin):
@@ -34,7 +34,7 @@ class PurchaseOrder(Base, TimestampMixin):
         String(30), default="DRAFT", nullable=False
     )
     order_date: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, nullable=False
+        DateTime, default=utc_now, nullable=False
     )
     expected_delivery_date: Mapped[datetime | None] = mapped_column(
         DateTime, nullable=True

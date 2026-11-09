@@ -5,14 +5,13 @@ from uuid import uuid4
 from sqlalchemy.orm import Session
 
 from app.modules.suppliers.models import (
-    Supplier,
-    SupplierInvoice,
-    SupplierPayment,
-    SupplierCreditLedger,
     LedgerEntryType,
     PaymentTerms,
+    Supplier,
+    SupplierCreditLedger,
+    SupplierInvoice,
+    SupplierPayment,
 )
-
 
 ZERO = Decimal("0.00")
 

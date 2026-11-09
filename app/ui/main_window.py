@@ -1,28 +1,27 @@
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QBrush
 from pathlib import Path
-from PySide6.QtGui import QPixmap, QColor, QBrush
+
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QBrush, QColor, QPixmap
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QApplication,
-    QMainWindow,
-    QWidget,
-    QFrame,
-    QVBoxLayout,
-    QHBoxLayout,
-    QGridLayout,
-    QLabel,
-    QPushButton,
+    QButtonGroup,
     QComboBox,
-    QSpinBox,
+    QFrame,
+    QHBoxLayout,
+    QHeaderView,
+    QInputDialog,
+    QLabel,
     QLineEdit,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QScrollArea,
+    QSpinBox,
     QTableWidget,
     QTableWidgetItem,
-    QHeaderView,
-    QMessageBox,
-    QInputDialog,
-    QScrollArea,
-    QButtonGroup,
-    QAbstractItemView,
+    QVBoxLayout,
+    QWidget,
 )
 
 from app.db.session import SessionLocal
@@ -38,6 +37,7 @@ from app.modules.inventory.reconciliation import (
     MultiBranchReconciliationEngine,
 )
 from app.modules.inventory.stock_transfer import StockTransferService
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 LOGO_PATH = PROJECT_ROOT / "assets" / "logo1.png"
 
@@ -93,8 +93,7 @@ def format_reconciliation_summary(summary):
         f"Loss value:           ₹ {summary['loss_value']:,.2f}",
         "",
         f"Resolution status:    {summary['resolution_status']}",
-        f"Approval status:      "
-        f"{summary['approval_status'].replace('_', ' ')}",
+        f"Approval status:      {summary['approval_status'].replace('_', ' ')}",
         f"Final transfer status: {summary['final_status']}",
     ]
     return "\n".join(lines)

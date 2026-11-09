@@ -11,3 +11,5 @@ requires-python = ">=3.12"
 authors = [
     { name = "Tech Tomorrow Engineering", email = "engineering@techtomorrow.in" }
 ]
+[tool.ruff.lint]
+ignore = ["B008", "BLE001"]

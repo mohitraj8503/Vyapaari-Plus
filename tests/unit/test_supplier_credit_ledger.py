@@ -4,9 +4,6 @@ from decimal import Decimal
 import pytest
 
 from app.modules.suppliers.models import (
-    Supplier,
-    SupplierInvoice,
-    SupplierCreditLedger,
     LedgerEntryType,
     PaymentTerms,
 )
@@ -76,7 +73,7 @@ def test_aging_report_groups_overdue_invoice(db_session):
     supplier = service.create_supplier(name="Test Supplier")
     now = datetime.now()
 
-    invoice = service.record_invoice(
+    service.record_invoice(
         supplier.id,
         "INV-003",
         now - timedelta(days=40),

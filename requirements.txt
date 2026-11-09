@@ -21,3 +21,8 @@ pytest>=8.2.0
 pytest-cov>=5.0.0
 pytest-qt>=4.4.0
 pytest-mock>=3.14.0
+
+jsonschema
+PyJWT
+qrcode[pil]
+cryptography

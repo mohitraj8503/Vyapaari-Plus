@@ -1,21 +1,20 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
 from app.core.exceptions import ValidationError
 from app.modules.inventory.models import (
     Branch,
-    CarrierLog,
     ReconciliationApproval,
     ReconciliationLog,
     StockBatch,
     StockTransfer,
     TransferStatus,
 )
-from app.modules.inventory.stock_transfer import StockTransferService
 from app.modules.inventory.reconciliation import (
     MultiBranchReconciliationEngine,
 )
+from app.modules.inventory.stock_transfer import StockTransferService
 
 
 def create_branches(db_session):
@@ -249,7 +248,7 @@ def test_update_carrier_tracking(db_session):
     service.dispatch_transfer(transfer.id)
 
     eta = datetime(
-        2026, 10, 15, 12, 0, tzinfo=timezone.utc
+        2026, 10, 15, 12, 0, tzinfo=UTC
     )
 
     updated = service.update_carrier_tracking(

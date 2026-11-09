@@ -9,8 +9,8 @@ from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from app.core.exceptions import ValidationError
 
 PAISE = Decimal("0.01")
-RUPEE = Decimal("1")
-HUNDRED = Decimal("100")
+RUPEE = Decimal(1)
+HUNDRED = Decimal(100)
 
 
 def to_decimal(value, field: str = "value") -> Decimal:

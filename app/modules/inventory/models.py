@@ -1,17 +1,17 @@
 import enum
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import (
     CheckConstraint,
-    UniqueConstraint,
-    Index,
-    String,
-    Integer,
-    Float,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
+    Index,
+    Integer,
+    String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,7 +21,7 @@ from app.db.mixins import TimestampMixin
 
 def utc_now() -> datetime:
     """Return the current timezone-aware UTC timestamp."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class TransferStatus(str, enum.Enum):

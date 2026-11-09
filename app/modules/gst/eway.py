@@ -1,3 +1,4 @@
+
 """E-way bill JSON builder (NIC EWB generation payload) with schema validation.
 
 build_eway_bill_json turns an invoice, its TaxBreakup and the transport details
@@ -195,9 +196,12 @@ def _item_rate(item: LineItem, rate_lookup: RateLookup | None) -> Decimal:
     )
 
 
-def _side(side: str, party: Party) -> dict:
+def _side(side: str, party: Party) -> dict[str, str | int]:
     state = int(party.state_code)
-    block = {f"{side}Gstin": party.gstin or "URP", f"{side}TrdName": party.name}
+    block: dict[str, str | int] = {
+        f"{side}Gstin": party.gstin or "URP",
+        f"{side}TrdName": party.name,
+    }
     if party.address is not None:
         block[f"{side}Addr1"] = party.address
     if party.city is not None:
@@ -212,7 +216,7 @@ def _side(side: str, party: Party) -> dict:
 def _item(
     item: LineItem, line: LineTax, regime: Regime, rate: Decimal, ad_valorem: Decimal
 ) -> dict:
-    zero = Decimal("0")
+    zero = Decimal(0)
     if regime is Regime.INTRA:
         cgst_rate = sgst_rate = rate / 2
         igst_rate = zero
@@ -278,7 +282,7 @@ def build_eway_bill_json(
         cess_ad_valorem_total += ad_valorem
         items.append(_item(item, line, regime, rate, ad_valorem))
 
-    payload = {
+        payload: dict[str, object] = {
         "supplyType": "O",
         "subSupplyType": 1,
         "docType": "INV",
@@ -305,9 +309,13 @@ def build_eway_bill_json(
     if transport.vehicle_no is not None:
         payload["vehicleNo"] = transport.vehicle_no
         payload["vehicleType"] = "R"
-    if transport.transport_doc_no is not None:
+    if (
+        transport.transport_doc_no is not None
+        and transport.transport_doc_date is not None
+    ):
         payload["transDocNo"] = transport.transport_doc_no
         payload["transDocDate"] = _format_date(transport.transport_doc_date)
+
     payload["itemList"] = items
     validate_eway_bill(payload)
     return payload
